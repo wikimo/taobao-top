@@ -1,6 +1,6 @@
 require 'digest/md5'
-require 'digest/hmac'
 require 'rest_client'
+require 'openssl'
 
 module Taobao
   module TOP
@@ -18,7 +18,9 @@ module Taobao
         str = self.select{|k,v| !multipart?(v) }.sort_by{|k,v| k.to_s }.collect{|i| i.join }.join
         @signature = case self.sign_method.to_s.downcase
         when 'md5' then Digest::MD5.hexdigest("#{secret}#{str}#{secret}").upcase
-        when 'hmac' then Digest::HMAC.hexdigest(str, secret, Digest::MD5).upcase
+        when 'hmac' then
+          digest = OpenSSL::Digest.new('md5')
+          OpenSSL::HMAC.hexdigest(digest, secret, str).upcase
         else ""
         end
         self.sign = @signature

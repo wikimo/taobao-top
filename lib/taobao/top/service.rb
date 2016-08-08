@@ -85,10 +85,11 @@ module Taobao
 
       def invoke method, http_method, *args
         prepare_params @options.merge(args.extract_options!).merge(method: method)
+        timeout = 10
         begin
           raw_response = case http_method
-          when :get then RestClient.get [TOP.gateways[:site], @params.to_query].join("?")
-          when :post then RestClient.post TOP.gateways[:site], @params
+          when :get then RestClient::Request.execute(method: 'get', url: [TOP.gateways[:site], @params.to_query].join("?"), timeout: timeout, open_timeout: timeout)
+          when :get then RestClient::Request.execute(method: 'post', url: TOP.gateways[:site], payload: @params, timeout: timeout, open_timeout: timeout)  
           end
           @response = case @params.format.to_s.downcase
           when 'json'
